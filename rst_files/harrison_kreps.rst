@@ -307,7 +307,26 @@ The first two rows of of the table report :math:`p_a(s)` and :math:`p_b(s)`
 
 Here's a function that can be used to compute these values
 
-.. literalinclude:: /_static/code/harrison_kreps/hk_price_singlebeliefs.py
+.. code-block:: python3
+
+    """
+
+    Authors: Chase Coleman, Tom Sargent
+
+    """
+    import scipy.linalg as la
+
+    def price_single_beliefs(transition, dividend_payoff, β=.75):
+        """
+        Function to Solve Single Beliefs
+        """
+        # First compute inverse piece
+        imbq_inv = la.inv(np.eye(transition.shape[0]) - β * transition)
+
+        # Next compute prices
+        prices = β * imbq_inv @ transition @ dividend_payoff
+
+    return prices
 
 
 Single belief prices as benchmarks
@@ -433,7 +452,32 @@ Investors of type :math:`a` want to sell the asset in state :math:`1` while inve
 
 Here's code to solve for :math:`\bar p`, :math:`\hat p_a` and :math:`\hat p_b` using the iterative method described above
 
-.. literalinclude:: /_static/code/harrison_kreps/hk_price_optimisticbeliefs.py
+.. code-block:: python3
+
+    def price_optimistic_beliefs(transitions, dividend_payoff, β=.75,
+                                 max_iter=50000, tol=1e-16):
+        """
+        Function to Solve Optimistic Beliefs
+        """
+        # We will guess an initial price vector of [0, 0]
+        p_new = np.array([[0], [0]])
+        p_old = np.array([[10.], [10.]])
+
+        # We know this is a contraction mapping, so we can iterate to conv
+        for i in range(max_iter):
+            p_old = p_new
+            p_new = β * np.max([q @ p_old + q @ dividend_payoff for q in transitions], 1)
+    
+            # If we succed in converging, break out of for loop
+            if np.max(np.sqrt((p_new - p_old)**2)) < 1e-12:
+                break
+    
+        ptwiddle = β * np.min([q @ p_old + q @ dividend_payoff for q in transitions], 1)
+
+        phat_a = np.array([p_new[0], ptwiddle[1]])
+        phat_b = np.array([ptwiddle[0], p_new[1]])
+
+        return p_new, phat_a, phat_b
 
 
 Insufficient Funds
@@ -474,7 +518,27 @@ Constraints on short sales prevent that
 
 Here's code to solve for :math:`\check p` using iteration
 
-.. literalinclude:: /_static/code/harrison_kreps/hk_price_pessimisticbeliefs.py
+.. code-block:: python3
+
+    def price_pessimistic_beliefs(transitions, dividend_payoff, β=.75,
+                                 max_iter=50000, tol=1e-16):
+        """
+        Function to Solve Pessimistic Beliefs
+        """
+        # We will guess an initial price vector of [0, 0]
+        p_new = np.array([[0], [0]])
+        p_old = np.array([[10.], [10.]])
+
+        # We know this is a contraction mapping, so we can iterate to conv
+        for i in range(max_iter):
+            p_old = p_new
+            p_new = β * np.min([q @ p_old + q @ dividend_payoff for q in transitions], 1)
+    
+            # If we succed in converging, break out of for loop
+            if np.max(np.sqrt((p_new - p_old)**2)) < 1e-12:
+                break
+
+        return p_new
 
 
 
