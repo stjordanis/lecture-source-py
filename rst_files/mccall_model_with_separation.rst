@@ -249,7 +249,22 @@ Let's plot the approximate solutions :math:`U` and :math:`V` to see what they lo
 We'll use the default parameterizations found in the code above
 
 
-.. literalinclude:: /_static/code/mccall/mccall_vf_plot1.py
+.. code-block:: python3
+
+    import matplotlib.pyplot as plt
+
+    mcm = McCallModel()
+    V, U = solve_mccall_model(mcm)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    ax.plot(mcm.w_vec, V, 'b-', lw=2, alpha=0.7, label='$V$')
+    ax.plot(mcm.w_vec, [U]*len(mcm.w_vec), 'g-', lw=2, alpha=0.7, label='$U$')
+    ax.set_xlim(min(mcm.w_vec), max(mcm.w_vec))
+    ax.legend(loc='upper left')
+    ax.grid()
+
+    plt.show()
 
 
 The value :math:`V` is increasing because higher :math:`w` generates a higher wage flow conditional on staying employed
@@ -385,7 +400,29 @@ Using the `compute_reservation_wage` function mentioned earlier in the lecture,
 we can create an array for reservation wages for different values of :math:`c`,
 :math:`\beta` and :math:`\alpha` and plot the results like so
 
-.. literalinclude:: /_static/code/mccall/mccall_resw_c.py
+.. code-block:: python3
+
+    grid_size = 25  
+    c_vals = np.linspace(2, 12, grid_size)  # values of unemployment compensation
+    w_bar_vals = np.empty_like(c_vals)
+
+    mcm = McCallModel()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for i, c in enumerate(c_vals):
+        mcm.c = c
+        w_bar = compute_reservation_wage(mcm)
+        w_bar_vals[i] = w_bar
+
+    ax.set_xlabel('unemployment compensation')
+    ax.set_ylabel('reservation wage')
+    txt = r'$\bar w$ as a function of $c$'
+    ax.plot(c_vals, w_bar_vals, 'b-', lw=2, alpha=0.7, label=txt)
+    ax.legend(loc='upper left')
+    ax.grid()
+
+    plt.show()
 
 
 Exercise 2
@@ -393,7 +430,33 @@ Exercise 2
 
 Similar to above, we can plot :math:`\bar w` against :math:`\gamma` as follows
 
-.. literalinclude:: /_static/code/mccall/mccall_resw_gamma.py
+.. code-block:: python3
+
+    import matplotlib.pyplot as plt
+
+    grid_size = 25  
+    γ_vals = np.linspace(0.05, 0.95, grid_size)  
+    w_bar_vals = np.empty_like(γ_vals)
+
+    mcm = McCallModel()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for i, γ in enumerate(γ_vals):
+        mcm.γ = γ
+        w_bar = compute_reservation_wage(mcm)
+        w_bar_vals[i] = w_bar
+
+    ax.set_xlabel('job offer rate')
+    ax.set_ylabel('reservation wage')
+    ax.set_xlim(γ_vals.min(), γ_vals.max())
+    txt = r'$\bar w$ as a function of $\gamma$'
+    ax.plot(γ_vals, w_bar_vals, 'b-', lw=2, alpha=0.7, label=txt)
+    ax.legend(loc='upper left')
+    ax.grid()
+
+    plt.show()
+
 
 
 As expected, the reservation wage increases in :math:`\gamma`
