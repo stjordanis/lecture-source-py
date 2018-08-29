@@ -452,7 +452,49 @@ Consider the previously presented duopoly model with parameter values of:
 
 From these we compute the infinite horizon MPE using the preceding code
 
-.. literalinclude:: /_static/code/markov_perf/duopoly_mpe.py
+.. code-block:: python3
+
+    """
+
+    @authors: Chase Coleman, Thomas Sargent, John Stachurski
+
+    """
+    import numpy as np
+    import quantecon as qe
+
+    # == Parameters == #
+    a0 = 10.0
+    a1 = 2.0
+    β = 0.96
+    γ = 12.0
+
+    # == In LQ form == #
+    A = np.eye(3)
+    B1 = np.array([[0.], [1.], [0.]])
+    B2 = np.array([[0.], [0.], [1.]])
+
+
+    R1 = [[      0.,     -a0 / 2,          0.],
+          [-a0 / 2.,          a1,     a1 / 2.],
+          [       0,     a1 / 2.,          0.]]
+
+    R2 = [[     0.,           0.,      -a0 / 2],
+          [     0.,           0.,      a1 / 2.],
+          [-a0 / 2,      a1 / 2.,           a1]]
+
+    Q1 = Q2 = γ
+    S1 = S2 = W1 = W2 = M1 = M2 = 0.0
+
+    # == Solve using QE's nnash function == #
+    F1, F2, P1, P2 = qe.nnash(A, B1, B2, R1, R2, Q1, 
+                              Q2, S1, S2, W1, W2, M1, 
+                              M2, beta=β)
+
+    # == Display policies == #
+    print("Computed policies for firm 1 and firm 2:\n")
+    print(f"F1 = {F1}")
+    print(f"F2 = {F2}")
+    print("\n")
 
 
 Running the code produces the following output
@@ -507,7 +549,27 @@ The following program
 
 * extracts and plots industry output :math:`q_t = q_{1t} + q_{2t}` and price :math:`p_t = a_0 - a_1 q_t`
 
-.. literalinclude:: /_static/code/markov_perf/duopoly_mpe_dynamics.py
+.. code-block:: python3
+
+    import matplotlib.pyplot as plt
+
+    AF = A - B1 @ F1 - B2 @ F2
+    n = 20
+    x = np.empty((3, n))
+    x[:, 0] = 1, 1, 1
+    for t in range(n-1):
+        x[:, t+1] = AF @ x[:, t]
+    q1 = x[1, :]
+    q2 = x[2, :]
+    q = q1 + q2       # Total output, MPE
+    p = a0 - a1 * q   # Price, MPE
+
+    fig, ax = plt.subplots(figsize=(9, 5.8))
+    ax.plot(q, 'b-', lw=2, alpha=0.75, label='total output')
+    ax.plot(p, 'g-', lw=2, alpha=0.75, label='price')
+    ax.set_title('Output and prices, duopoly MPE')
+    ax.legend(frameon=False)
+    plt.show()
 
 Note that the initial condition has been set to :math:`q_{10} = q_{20} = 1.0`
 
