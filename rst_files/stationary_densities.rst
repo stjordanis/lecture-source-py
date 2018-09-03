@@ -903,7 +903,20 @@ A common way to compare distributions visually is with `boxplots <https://en.wik
 
 To illustrate, let's generate three artificial data sets and compare them with a boxplot
 
-.. literalinclude:: /_static/code/stationary_densities/boxplot_example.py
+.. code-block:: python3
+
+    n = 500
+    x = np.random.randn(n)        # N(0, 1)
+    x = np.exp(x)                 # Map x to lognormal
+    y = np.random.randn(n) + 2.0  # N(2, 1)
+    z = np.random.randn(n) + 4.0  # N(4, 1)
+    
+    fig, ax = plt.subplots(figsize=(10, 6.6))
+    ax.boxplot([x, y, z])
+    ax.set_xticks((1, 2, 3))
+    ax.set_ylim(-2, 14)
+    ax.set_xticklabels(('$X$', '$Y$', '$Z$'), fontsize=16)
+plt.show()
 
 The three data sets are
 
